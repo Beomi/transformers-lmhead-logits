@@ -1000,6 +1000,8 @@ class LlamaForCausalLM(LlamaPreTrainedModel):
         output_attentions: Optional[bool] = None,
         output_hidden_states: Optional[bool] = None,
         return_dict: Optional[bool] = None,
+        ko_alpha: float = 1.0,
+        ko_index: Optional[int] = None,
     ) -> Union[Tuple, CausalLMOutputWithPast]:
         r"""
         Args:
@@ -1054,6 +1056,11 @@ class LlamaForCausalLM(LlamaPreTrainedModel):
         else:
             logits = self.lm_head(hidden_states)
         logits = logits.float()
+
+        # Korean vocab Index to be calculated with ko_alpha (default: 1.0)
+        if ko_index is not None:
+            mask = torch.arange(self.vocab_size) >= ko_index
+            logits[:, :, mask] *= ko_alpha
 
         loss = None
         if labels is not None:
